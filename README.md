@@ -3,6 +3,8 @@
 <a href='https://francis-rings.github.io/FlashPortrait'><img src='https://img.shields.io/badge/Project-Page-Green'></a> <a href='http://arxiv.org/abs/2512.16900'><img src='https://img.shields.io/badge/Paper-Arxiv-red'></a> <a href='https://huggingface.co/FrancisRing/FlashPortrait/tree/main'><img src='https://img.shields.io/badge/HuggingFace-Model-orange'></a> 
 <a href='https://github.com/comfyanonymous/ComfyUI'><img src='https://img.shields.io/badge/ComfyUI-Custom_Node-blue'></a>
 
+<img src="assets/figures/main.png" width="100%"/>
+
 This repository provides [**FlashPortrait**](https://github.com/Francis-Rings/FlashPortrait) custom nodes for ComfyUI. 
 It allows you to generate **infinite-length portrait animations** driven by a video, directly within your ComfyUI workflow.
 
@@ -37,6 +39,10 @@ It allows you to generate **infinite-length portrait animations** driven by a vi
 3.  **Restart ComfyUI**.
 
 ## 🚀 Nodes Usage
+
+### 💡 Example Workflow
+You can find a basic ComfyUI workflow in `examples/flash_portraits_example.json`.
+Simply drag and drop this file into your ComfyUI window to load the graph.
 
 ### 1. FlashPortrait Loader
 Loads the heavy models (Transformer, VAE) and face alignment tools.
