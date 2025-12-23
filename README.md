@@ -18,7 +18,7 @@ It allows you to generate **infinite-length portrait animations** driven by a vi
     *   **Driving Video**: Defines the motion and expression.
     *   **Initial Video Frames** (Optional): Allows pre-defining the canvas content if distinct from the reference tiling.
 
-## �️ Installation
+## 🔧 Installation
 
 1.  **Clone the Repository**:
     Go to your ComfyUI `custom_nodes` folder and run:
@@ -36,7 +36,7 @@ It allows you to generate **infinite-length portrait animations** driven by a vi
 
 3.  **Restart ComfyUI**.
 
-## � Nodes Usage
+## 🚀 Nodes Usage
 
 ### 1. FlashPortrait Loader
 Loads the heavy models (Transformer, VAE) and face alignment tools.
