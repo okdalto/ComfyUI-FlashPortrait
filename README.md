@@ -6,7 +6,7 @@
 This repository provides [**FlashPortrait**](https://github.com/Francis-Rings/FlashPortrait) custom nodes for ComfyUI. 
 It allows you to generate **infinite-length portrait animations** driven by a video, directly within your ComfyUI workflow.
 
-*Original Paper*: **FlashPortrait: 6$\times$ Faster Infinite Portrait Animation with Adaptive Latent Prediction**
+*Original Paper*: **FlashPortrait: 6x Faster Infinite Portrait Animation with Adaptive Latent Prediction**
 
 ---
 
@@ -74,7 +74,7 @@ And to the open-source projects that made this possible:
 ## 📄 Citation
 ```bib
 @article{tu2025flashportrait,
-  title={FlashPortrait: 6$\times$ Faster Infinite Portrait Animation with Adaptive Latent Prediction},
+  title={FlashPortrait: 6x Faster Infinite Portrait Animation with Adaptive Latent Prediction},
   author={Tu, Shuyuan and Pan, Yueming and Huang, Yinming and Han, Xintong and Xing, Zhen and Dai, Qi and Qiu, Kai and Luo, Chong and Wu, Zuxuan},
   journal={arXiv preprint arXiv:2512.16900},
   year={2025}
