@@ -205,3 +205,11 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+*.mp4
+assets/figures/framework.jpg
+examples/case-1/reference.png
+examples/case-2/reference.png
+examples/case-3/reference.png
+examples/case-4/reference.png
+examples/case-5/reference.png
+examples/case-6/reference.png

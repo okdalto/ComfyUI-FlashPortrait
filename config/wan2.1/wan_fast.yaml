@@ -1,0 +1,61 @@
+format: civitai
+pipeline: Wan
+transformer_additional_kwargs:
+  transformer_subpath: ./
+  dict_mapping:
+    in_dim: in_channels
+    dim: hidden_size
+
+vae_kwargs:
+  vae_subpath: Wan2.1_VAE.pth
+  temporal_compression_ratio: 4
+  spatial_compression_ratio: 8
+  use_tiling_vae: true
+  tile_sample_min_height: 256
+  tile_sample_min_width: 256
+  tile_sample_stride_height: 192
+  tile_sample_stride_width: 192
+
+text_encoder_kwargs:
+  text_encoder_subpath: models_t5_umt5-xxl-enc-bf16.pth
+  tokenizer_subpath: google/umt5-xxl
+  text_length: 512
+  vocab: 256384
+  dim: 4096
+  dim_attn: 4096
+  dim_ffn: 10240
+  num_heads: 64
+  num_layers: 24
+  num_buckets: 32
+  shared_pos: False
+  dropout: 0.0
+
+scheduler_kwargs:
+  scheduler_subpath: null
+  num_train_timesteps: 1000
+  shift: 5.0
+  use_dynamic_shifting: false
+  base_shift: 0.5
+  max_shift: 1.15
+  base_image_seq_len: 256
+  max_image_seq_len: 4096
+
+image_encoder_kwargs:
+  image_encoder_subpath: models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth
+
+tiny_vae_kwargs:
+  use_tiny_vae: true
+  tiny_vae_path: checkpoints/FlashPortrait/fast_vae.pth
+  tiny_vae_parallel: false
+  tiny_vae_need_scaled: false
+
+step_distill_kwargs:
+  enable_step_distill: true
+  step_distill_lora_path: checkpoints/FlashPortrait/fast_lora_rank64.safetensors
+  step_distill_lora_strength: 1.0
+  denoising_step_list:
+    - 1000  
+    - 750   
+    - 500   
+    - 250   
+  step_distill_infer_steps: 4
