@@ -1,5 +1,5 @@
 [project]
-name = "flashportrait"
+name = "ComfyUI-FlashPortrait"
 description = "ComfyUI nodes for FlashPortrait that enable infinite-length portrait animation generation driven by video with automatic model downloading and flexible input options."
 version = "1.0.0"
 license = {file = "LICENSE"} 
@@ -29,7 +29,7 @@ Documentation = "https://github.com/okdalto/ComfyUI-FlashPortrait/wiki"
 "Bug Tracker" = "https://github.com/okdalto/ComfyUI-FlashPortrait/issues"
 
 [tool.comfy]
-PublisherId = ""
+PublisherId = "seonghyeon"
 DisplayName = "ComfyUI-FlashPortrait"
 Icon = ""
 includes = [] 
