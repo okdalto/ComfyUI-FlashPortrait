@@ -1,7 +1,7 @@
 [project]
 name = "ComfyUI-FlashPortrait"
 description = "ComfyUI nodes for FlashPortrait that enable infinite-length portrait animation generation driven by video with automatic model downloading and flexible input options."
-version = "1.0.0"
+version = "1.0.1"
 license = {file = "LICENSE"} 
 # classifiers = [
 #     # For OS-independent nodes (works on all operating systems)
