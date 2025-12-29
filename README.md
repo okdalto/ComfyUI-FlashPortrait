@@ -26,7 +26,7 @@ It allows you to generate **infinite-length portrait animations** driven by a vi
     Go to your ComfyUI `custom_nodes` folder and run:
     ```bash
     cd ComfyUI/custom_nodes
-    git clone https://github.com/Francis-Rings/FlashPortrait
+    git clone https://github.com/okdalto/ComfyUI-FlashPortrait
     cd FlashPortrait
     ```
 
