@@ -26,6 +26,11 @@ from .wan.models import AutoencoderKLWan, CLIPModel, WanT5EncoderModel, WanTrans
 from .wan.utils.utils import filter_kwargs
 from .wan.utils.fm_solvers import FlowDPMSolverMultistepScheduler
 from .wan.utils.fm_solvers_unipc import FlowUniPCMultistepScheduler
+from .wan.utils.fp8_optimization import (
+    replace_parameters_by_name, 
+    convert_model_weight_to_float8, 
+    convert_weight_dtype_wrapper
+)
 
 from comfy.utils import ProgressBar
 
@@ -42,6 +47,7 @@ class FlashPortraitLoader:
         return {
             "required": {
                 "precision": (["bf16", "fp16", "fp32"], {"default": "bf16"}),
+                "GPU_memory_mode": (["default", "sequential_cpu_offload", "model_cpu_offload_and_qfloat8"], {"default": "default"}),
                 "download_missing": ("BOOLEAN", {"default": True}),
             }
         }
@@ -51,7 +57,7 @@ class FlashPortraitLoader:
     FUNCTION = "load_models"
     CATEGORY = "FlashPortrait"
 
-    def load_models(self, precision, download_missing):
+    def load_models(self, precision, GPU_memory_mode, download_missing):
         device = mm.get_torch_device()
         dtype = {"bf16": torch.bfloat16, "fp16": torch.float16, "fp32": torch.float32}[precision]
 
@@ -126,7 +132,26 @@ class FlashPortraitLoader:
         portrait_encoder.to(device).eval()
 
         # Pack pipeline components
+        # Scheduler setup (default to Flow)
+        sc_cls = FlowMatchEulerDiscreteScheduler
+        scheduler = sc_cls(**filter_kwargs(sc_cls, OmegaConf.to_container(config['scheduler_kwargs'])))
+
+        pipeline = WanI2VLongPipeline(
+            transformer=transformer, vae=vae, tokenizer=tokenizer, 
+            text_encoder=text_encoder, scheduler=scheduler, 
+            clip_image_encoder=clip_image_encoder, portrait_encoder=portrait_encoder
+        )
+
+        if GPU_memory_mode == "sequential_cpu_offload":
+            replace_parameters_by_name(transformer, ["modulation",], device=device)
+            transformer.freqs = transformer.freqs.to(device=device)
+            pipeline.enable_sequential_cpu_offload(device=device)
+        elif GPU_memory_mode == "model_cpu_offload_and_qfloat8":
+            convert_model_weight_to_float8(transformer, exclude_module_name=["modulation",], device=device)
+            convert_weight_dtype_wrapper(transformer, dtype)
+
         pipe = {
+            "pipeline": pipeline,
             "transformer": transformer,
             "vae": vae,
             "tokenizer": tokenizer,
@@ -303,15 +328,19 @@ class FlashPortraitSampler:
         device = pipe["device"]
         dtype = pipe["dtype"]
 
-        # Scheduler setup (default to Flow)
-        sc_cls = FlowMatchEulerDiscreteScheduler
-        scheduler = sc_cls(**filter_kwargs(sc_cls, OmegaConf.to_container(config['scheduler_kwargs'])))
+        if "pipeline" in pipe:
+            pipeline = pipe["pipeline"]
+        else:
+            # Fallback for older workflows or if pipeline wasn't created in loader
+            # Scheduler setup (default to Flow)
+            sc_cls = FlowMatchEulerDiscreteScheduler
+            scheduler = sc_cls(**filter_kwargs(sc_cls, OmegaConf.to_container(config['scheduler_kwargs'])))
 
-        pipeline = WanI2VLongPipeline(
-            transformer=transformer, vae=vae, tokenizer=tokenizer, 
-            text_encoder=text_encoder, scheduler=scheduler, 
-            clip_image_encoder=clip_image_encoder, portrait_encoder=portrait_encoder
-        )
+            pipeline = WanI2VLongPipeline(
+                transformer=transformer, vae=vae, tokenizer=tokenizer, 
+                text_encoder=text_encoder, scheduler=scheduler, 
+                clip_image_encoder=clip_image_encoder, portrait_encoder=portrait_encoder
+            )
         
         # Prepare Input Image
         # Comfy Image is [B,H,W,C] RGB Tensor 0-1
@@ -322,30 +351,31 @@ class FlashPortraitSampler:
         img = Image.fromarray(ref_img_np).convert("RGB")
 
         # Resize logic from infer.py
+        num_frames = head_emo_features.shape[1]
+        # Adjust num_frames to satisfy (N-1)%4 == 0 constraint
+        if (num_frames - 1) % 4 != 0:
+            num_frames = (num_frames - 1) // 4 * 4 + 1
+        
+        # Prepare head_emo
+        head_emo = head_emo_features[:, :num_frames].to(device)
+
+        sub_num_frames = num_frames
+        
+        # Calculate latent frames similar to pipeline
+        vae_temporal_compression = 4 # Hardcoded or get from config if possible (pipe['config']['vae_kwargs']['temporal_compression_ratio'])
+        latents_num_frames = (num_frames - 1) // vae_temporal_compression + 1
+        infer_length = latents_num_frames
+
+        # Resize logic from infer.py
         scale = max_size / max(img.size)
         w, h = (int(img.size[0] * scale) // 16 * 16, int(img.size[1] * scale) // 16 * 16)
         img = img.resize((w, h), Image.LANCZOS)
-        
-        input_video = torch.tile(torch.from_numpy(np.array(img)).permute(2,0,1).unsqueeze(1).unsqueeze(0), [1, 1, 201, 1, 1]).to(dtype) / 255.0
-        # Wait, the sub_num_frames from config? 
-        # infer.py uses cfg.sub_num_frames=201 hardcoded in config class.
-        sub_num_frames = 201 
-        latents_num_frames = 51
 
-        # Adjust input_video shape to sub_num_frames
+        # Create input_video with correct length
         input_video = torch.tile(torch.from_numpy(np.array(img)).permute(2,0,1).unsqueeze(1).unsqueeze(0), [1, 1, sub_num_frames, 1, 1]).to(dtype) / 255.0
         
         input_video_mask = torch.zeros_like(input_video[:, :1])
         input_video_mask[:, :, 1:] = 255
-
-        num_frames = head_emo_features.shape[1]
-        
-        head_emo = head_emo_features.to(device)
-
-        # Prevent pipeline crash for short videos (context_step=0 issue)
-        # Calculate latent frames similar to pipeline
-        vae_temporal_compression = 4 # Hardcoded or get from config if possible (pipe['config']['vae_kwargs']['temporal_compression_ratio'])
-        infer_length = (num_frames - 1) // vae_temporal_compression + 1
         
         # If video is shorter than context window, reduce context size to match
         # Ensure effective_context_size is positive and safe

@@ -198,7 +198,7 @@ def attention(
             version=fa_version,
         )
     else:
-        print(1/0)
+        # print(1/0)
         if q_lens is not None or k_lens is not None:
             warnings.warn(
                 'Padding mask is disabled when using scaled_dot_product_attention. It can have a significant impact on performance.'

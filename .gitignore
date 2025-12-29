@@ -27,6 +27,7 @@ wheels/
 # ComfyUI / FlashPortrait specific
 checkpoints/
 models/
+!wan/models/
 output/
 samples/
 results/

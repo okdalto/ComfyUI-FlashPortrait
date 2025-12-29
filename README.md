@@ -18,7 +18,7 @@ It allows you to generate **infinite-length portrait animations** driven by a vi
 *   **Flexible Inputs**:
     *   **Reference Image**: Defines the identity (ID).
     *   **Driving Video**: Defines the motion and expression.
-    *   **Initial Video Frames** (Optional): Allows pre-defining the canvas content if distinct from the reference tiling.
+
 
 ## 🔧 Installation
 
@@ -27,11 +27,11 @@ It allows you to generate **infinite-length portrait animations** driven by a vi
     ```bash
     cd ComfyUI/custom_nodes
     git clone https://github.com/okdalto/ComfyUI-FlashPortrait
-    cd FlashPortrait
     ```
 
 2.  **Install Dependencies**:
     ```bash
+    cd ComfyUI/custom_nodes/ComfyUI-FlashPortrait
     pip install -r requirements.txt
     ```
     *Note: Requires approx. 40GB VRAM for full model loading (BF16).*
@@ -47,6 +47,7 @@ Simply drag and drop this file into your ComfyUI window to load the graph.
 ### 1. FlashPortrait Loader
 Loads the heavy models (Transformer, VAE) and face alignment tools.
 *   **precision**: `bf16` (recommended), `fp16`, `fp32`.
+*   **GPU_memory_mode**: `default`, `sequential_cpu_offload`, `model_cpu_offload_and_qfloat8`.
 *   **download_missing**: Enable this to automatically download models to `ComfyUI/models/flash_portrait/` on first run.
 
 ### 2. FlashPortrait Feature Extractor
@@ -60,7 +61,7 @@ The main generation node.
 *   **pipe**: Connect from Loader.
 *   **head_emo_features**: Connect from Feature Extractor.
 *   **image**: The **Reference Image** (Identity). Only the first frame is used.
-*   **initial_video_frames** (Optional): If provided, these frames define the starting canvas/background instead of simply tiling the reference image.
+
 *   **prompt** / **negative_prompt**: Text guidance.
 *   **guidance_scale** / **text_cfg_scale** / **emo_cfg_scale**: Control the influence of unconditional, text, and emotion guidance.
 *   **steps**: Inference steps (default 30).
